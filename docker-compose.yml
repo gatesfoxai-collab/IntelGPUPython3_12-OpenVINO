@@ -1,0 +1,32 @@
+services:
+  whisper-intel-gpu:
+    build: .
+    image: intel-gpu-python312-openvino:latest
+    container_name: whisper-intel
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+      - ./output:/app/output
+    devices:
+      - /dev/dri:/dev/dri  # Intel GPU 直通 (Linux/WSL2)
+    environment:
+      - OV_DEVICE=GPU.0
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    # 本地測試：麥克風需要額外設定，Docker 內建議用檔案轉寫
+    command: python src/realtime_to_nr1.py
+
+  # 純 CPU 備用 (不需要 GPU 直通)
+  whisper-cpu:
+    build: .
+    image: intel-gpu-python312-openvino:latest
+    container_name: whisper-cpu
+    profiles: ["cpu"]
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+      - ./output:/app/output
+    environment:
+      - OV_DEVICE=CPU
+    command: python src/transcribe.py

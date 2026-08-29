@@ -1,0 +1,62 @@
+# 安全 .gitignore - 已過濾敏感/大型檔案
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+*.log
+*.tmp
+
+# 模型與大型檔案 (不要上傳到 GitHub)
+models/
+*.bin
+*.onnx
+*.xml
+*.safetensors
+*.pt
+whisper/
+*.mp3
+*.wav
+*.m4a
+*.flac
+
+# 環境變數與密鑰 (絕對不要上傳)
+.env
+*.env
+.env.local
+.env.*.local
+config/secrets.yaml
+secrets/
+*.pem
+*.key
+*.token
+HF_TOKEN
+huggingface_token.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 系統暫存
+.cache/
+huggingface/
+openvino_cache/
+*.lock
+
+# 測試輸出
+output/
+transcribed/
+watchall*

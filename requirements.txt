@@ -1,0 +1,23 @@
+# Intel GPU Python 3.12 - OpenVINO Whisper large-v3
+# 測試於 Python 3.12 + OpenVINO 2024.6 + optimum-intel 1.18 (相容 transformers 4.44)
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+openvino==2024.6.0
+openvino-tokenizers==2024.6.0
+optimum==1.21.0
+optimum-intel==1.18.0
+transformers==4.44.2
+tokenizers==0.19.1
+huggingface-hub==0.24.7
+accelerate==0.34.2
+torch==2.4.0
+torchaudio==2.4.0
+# 音訊與即時輸入
+sounddevice==0.4.7
+scipy==1.13.1
+numpy==1.26.4
+pyautogui==0.9.54
+keyboard==0.13.5
+pynput==1.7.6
+# TTS (可選)
+edge-tts==6.1.10
