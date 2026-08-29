@@ -1,0 +1,2 @@
+# IntelGPUPython3_12-OpenVINO
+讓出cpu 給agents及NvdiaGpu給本地模型用,改OpenVINO取代Whisper模型
