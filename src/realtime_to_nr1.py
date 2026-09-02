@@ -95,8 +95,15 @@ with sd.InputStream(samplerate=samplerate, channels=channels, callback=callback)
 
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             wav.write(f.name, samplerate, (audio * 32767).astype(np.int16))
-            result = asr_pipe(f.name, generate_kwargs={"suppress_tokens": [], "begin_suppress_tokens": []})
+            result = asr_pipe(f.name, generate_kwargs={"language": "zh", "task": "transcribe", "suppress_tokens": [], "begin_suppress_tokens": []})
             text = result["text"].strip()
+            # 過濾 Whisper 幻覺標籤 (speaking foreign language) 等
+            import re
+            orig = text
+            text = re.sub(r"[\[\(（【][^\]\)）】]*?(speaking|foreign|language|music|singing|中文|外語)[^\]\)）】]*?[\]\)）】]", "", text, flags=re.I).strip()
+            text = re.sub(r"\s{2,}", " ", text).strip()
+            if text != orig:
+                print(f"  過濾前: {orig}")
             if text:
                 print(f"辨識: {text}")
                 if not paused:
