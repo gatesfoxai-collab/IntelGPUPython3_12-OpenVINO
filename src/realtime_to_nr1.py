@@ -1,7 +1,9 @@
-# src/realtime_to_nr1.py - Intel GPU (OpenVINO) 即時語音 -> 滑鼠點哪打到哪
-# Python 3.12, OpenVINO 2024.6, optimum-intel 1.18
+# src/realtime_to_nr1.py - faster-whisper 即時語音 -> 滑鼠點哪打到哪 (穩、中文準)
+# 取代 OpenVINO 版，避開 IR 壞檔與 suppress_tokens 越界坑
+# 限 4 核 int8，CPU 佔用 20-30% 不會卡 Agent
 import os
 import queue
+import re
 import tempfile
 import time
 
@@ -9,6 +11,7 @@ import numpy as np
 import pyautogui
 import scipy.io.wavfile as wav
 import sounddevice as sd
+from faster_whisper import WhisperModel
 
 try:
     import keyboard
@@ -16,34 +19,23 @@ try:
 except ImportError:
     HAS_KEYBOARD = False
 
-# ===== Intel GPU 設定 =====
-OV_DEVICE = os.getenv("OV_DEVICE", "GPU.0")  # GPU.0=Intel iGPU, GPU.1/2=RTX 5090, CPU, NPU
-MODEL_ID = os.getenv("MODEL_ID", "openai/whisper-medium")
-print(f"載入 {MODEL_ID} 到 {OV_DEVICE} (OpenVINO)...")
+# ===== 設定 =====
+MODEL_SIZE = os.getenv("MODEL_SIZE", "small")  # small 244M 最穩，medium 769M 中文更好
+DEVICE = "cpu"
+COMPUTE_TYPE = "int8"
+CPU_THREADS = int(os.getenv("CPU_THREADS", "4"))
+MODEL_ROOT = os.getenv("MODEL_ROOT", "D:/ollamamodels/whisper")
 
-from optimum.intel import OVModelForSpeechSeq2Seq
-from transformers import AutoProcessor, pipeline
-
-ov_model = OVModelForSpeechSeq2Seq.from_pretrained(
-    MODEL_ID, export=True, device=OV_DEVICE
-)
-processor = AutoProcessor.from_pretrained(MODEL_ID)
-asr_pipe = pipeline(
-    "automatic-speech-recognition",
-    model=ov_model,
-    tokenizer=processor.tokenizer,
-    feature_extractor=processor.feature_extractor,
-)
-print(f"✅ 已載入到 {OV_DEVICE}，可開始即時辨識")
+print(f"載入 faster-whisper {MODEL_SIZE} ({DEVICE} {COMPUTE_TYPE} {CPU_THREADS}核)...")
+model = WhisperModel(MODEL_SIZE, device=DEVICE, compute_type=COMPUTE_TYPE, cpu_threads=CPU_THREADS, download_root=MODEL_ROOT)
+print(f"✅ 已載入 {MODEL_SIZE}，可開始即時辨識（限{CPU_THREADS}核）")
 
 paused = False
-
 def pause():
     global paused
     if not paused:
         paused = True
         print("⏸️ 已暫停 (CapsLock+↓)")
-
 def resume():
     global paused
     if paused:
@@ -83,7 +75,6 @@ with sd.InputStream(samplerate=samplerate, channels=channels, callback=callback)
             while not q.empty():
                 q.get()
             continue
-
         chunks = []
         while not q.empty():
             chunks.append(q.get())
@@ -92,26 +83,18 @@ with sd.InputStream(samplerate=samplerate, channels=channels, callback=callback)
         audio = np.concatenate(chunks, axis=0).flatten()
         if np.abs(audio).mean() < 0.005:
             continue
-
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             wav.write(f.name, samplerate, (audio * 32767).astype(np.int16))
-            result = asr_pipe(f.name, generate_kwargs={"language": "zh", "task": "transcribe", "suppress_tokens": [], "begin_suppress_tokens": []})
-            text = result["text"].strip()
-            # 過濾 Whisper 幻覺：只要含 speaking/music 就整句丟掉（除非有中文字）
-            import re
-            orig = text
+            segments, info = model.transcribe(f.name, language="zh", vad_filter=True, beam_size=1)
+            text = "".join(s.text for s in segments).strip()
+            # 過濾幻覺
             has_chinese = bool(re.search(r"[\u4e00-\u9fff]", text))
             is_hallucination = bool(re.search(r"speaking|foreign|music|singing", text, re.I))
-            if is_hallucination and not has_chinese:
-                print(f"  丟棄幻覺: {orig}")
+            if is_hallucination and not has_chinese and text:
+                print(f"  丟棄幻覺: {text}")
                 text = ""
-            else:
-                text = re.sub(r"[\[\(（【][^\]\)）】]*?(speaking|foreign|language|music|singing)[^\]\)）】]*?[\]\)）】]", "", text, flags=re.I).strip()
-                text = re.sub(r"\s{2,}", " ", text).strip()
-                if text != orig and text:
-                    print(f"  過濾前: {orig}")
             if text:
-                print(f"辨識: {text}")
+                print(f"辨識: {text} (lang={info.language} {info.language_probability:.2f})")
                 if not paused:
                     pyautogui.write(text + " ")
         try:
