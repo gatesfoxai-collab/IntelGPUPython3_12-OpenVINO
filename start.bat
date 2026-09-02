@@ -18,6 +18,8 @@ if not exist ".venv312\Scripts\python.exe" (
 
 set OV_DEVICE=GPU.0
 set PYTHONUNBUFFERED=1
+set HF_HUB_CACHE=E:\hf_cache
+set HF_HOME=E:\hf_cache
 
 ".venv312\Scripts\python.exe" src\realtime_to_nr1.py
 
