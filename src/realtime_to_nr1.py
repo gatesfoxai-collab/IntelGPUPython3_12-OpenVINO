@@ -95,7 +95,7 @@ with sd.InputStream(samplerate=samplerate, channels=channels, callback=callback)
 
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             wav.write(f.name, samplerate, (audio * 32767).astype(np.int16))
-            result = asr_pipe(f.name, generate_kwargs={"language": "chinese"})
+            result = asr_pipe(f.name, generate_kwargs={"language": "zh", "task": "transcribe"})
             text = result["text"].strip()
             if text:
                 print(f"辨識: {text}")
