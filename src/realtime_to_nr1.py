@@ -18,7 +18,7 @@ except ImportError:
 
 # ===== Intel GPU 設定 =====
 OV_DEVICE = os.getenv("OV_DEVICE", "GPU.0")  # GPU.0=Intel iGPU, GPU.1/2=RTX 5090, CPU, NPU
-MODEL_ID = os.getenv("MODEL_ID", "openai/whisper-large-v3")
+MODEL_ID = os.getenv("MODEL_ID", "openai/whisper-base")
 print(f"載入 {MODEL_ID} 到 {OV_DEVICE} (OpenVINO)...")
 
 from optimum.intel import OVModelForSpeechSeq2Seq
