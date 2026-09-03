@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
-title faster-whisper Whisper - realtime_to_nr1 (CPU 4core)
+title Intel GPU Whisper - realtime_to_nr1 (GPU.0)
 cd /d "%~dp0"
 echo ==========================================
-echo  faster-whisper medium (CPU int8 4core)
-echo  Chinese accurate, no OpenVINO IR
+echo  Intel GPU Whisper medium (OpenVINO GPU.0)
+echo  GPU.0 = Intel Graphics iGPU
 echo  CapsLock+Down Pause / CapsLock+Up Resume
 echo  Press Enter manually to send
 echo ==========================================
