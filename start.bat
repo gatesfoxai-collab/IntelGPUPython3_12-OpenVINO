@@ -3,8 +3,8 @@ chcp 65001 >nul
 title faster-whisper Whisper - realtime_to_nr1 (CPU 4core)
 cd /d "%~dp0"
 echo ==========================================
-echo  faster-whisper small (CPU int8 4core)
-echo  Stable Chinese, no OpenVINO IR
+echo  faster-whisper medium (CPU int8 4core)
+echo  Chinese accurate, no OpenVINO IR
 echo  CapsLock+Down Pause / CapsLock+Up Resume
 echo  Press Enter manually to send
 echo ==========================================

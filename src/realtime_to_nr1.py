@@ -20,7 +20,7 @@ except ImportError:
     HAS_KEYBOARD = False
 
 # ===== 設定 =====
-MODEL_SIZE = os.getenv("MODEL_SIZE", "small")  # small 244M 最穩，medium 769M 中文更好
+MODEL_SIZE = os.getenv("MODEL_SIZE", "medium")  # small 244M 快，medium 769M 中文更準
 DEVICE = "cpu"
 COMPUTE_TYPE = "int8"
 CPU_THREADS = int(os.getenv("CPU_THREADS", "4"))
