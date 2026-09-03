@@ -82,7 +82,7 @@ with sd.InputStream(samplerate=samplerate, channels=channels, callback=callback)
             continue
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             wav.write(f.name, samplerate, (audio * 32767).astype(np.int16))
-            result = asr_pipe(f.name, generate_kwargs={"language": "zh", "task": "transcribe", "suppress_tokens": [], "begin_suppress_tokens": []})
+            result = asr_pipe(f.name, generate_kwargs={"language": "zh", "task": "transcribe", "suppress_tokens": [], "begin_suppress_tokens": [], "num_beams": 1})
             text = result["text"].strip()
             has_chinese = bool(re.search(r"[\u4e00-\u9fff]", text))
             is_hallucination = bool(re.search(r"speaking|foreign|music|singing", text, re.I))
